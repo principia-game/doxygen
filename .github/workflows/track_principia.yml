@@ -1,0 +1,67 @@
+name: track_principia
+
+on:
+  schedule:
+    # Run every 3 hours
+    - cron: '0 */3 * * *'
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update_repo:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Update Principia revision
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          ./update-revs.sh  # sets PRINCIPIA_REV
+          ./push-revs.sh    # sets DID_PUSH
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Checkout principia
+      
+      - uses: actions/checkout@v4
+        if: ${{ env.DID_PUSH == 'true' }}
+        with:
+          repository: 'Bithack/principia'
+          ref: ${{ env.PRINCIPIA_REV }}
+          path: 'principia'
+      
+      - name: Install deps
+        if: ${{ env.DID_PUSH == 'true' }}
+        run: |
+          sudo apt-get install -y doxygen graphviz wget
+
+      - name: Generate Doxygen documentation
+        if: ${{ env.DID_PUSH == 'true' }}
+        run: |
+          pushd principia
+          wget https://raw.githubusercontent.com/rollerozxa/doxygen-awesome-css/main/doxygen-awesome.css -O doc/doxygen-awesome.css
+          doxygen Doxyfile
+          touch doc/doxy/html/.nojekyll
+          popd
+
+      - name: Setup Pages
+        if: ${{ env.DID_PUSH == 'true' }}
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        if: ${{ env.DID_PUSH == 'true' }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'principia/doc/doxy/html/'
+
+      - name: Deploy to GitHub Pages
+        if: ${{ env.DID_PUSH == 'true' }}
+        id: deployment
+        uses: actions/deploy-pages@v4
