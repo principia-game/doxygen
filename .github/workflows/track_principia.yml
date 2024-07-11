@@ -46,7 +46,7 @@ jobs:
         if: ${{ env.DID_PUSH == 'true' }}
         run: |
           pushd principia
-          wget https://raw.githubusercontent.com/rollerozxa/doxygen-awesome-css/main/doxygen-awesome.css -O doc/doxygen-awesome.css
+          cp ../doxygen-awesome.css doc/
           doxygen Doxyfile
           touch doc/doxy/html/.nojekyll
           popd
