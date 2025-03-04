@@ -46,9 +46,9 @@ jobs:
         if: ${{ env.DID_PUSH == 'true' }}
         run: |
           pushd principia
-          cp ../doxygen-awesome.css doc/
+          cp ../doxygen-awesome.css ./
           doxygen Doxyfile
-          touch doc/doxy/html/.nojekyll
+          touch doxy/html/.nojekyll
           popd
 
       - name: Setup Pages
@@ -59,7 +59,7 @@ jobs:
         if: ${{ env.DID_PUSH == 'true' }}
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'principia/doc/doxy/html/'
+          path: 'principia/doxy/html/'
 
       - name: Deploy to GitHub Pages
         if: ${{ env.DID_PUSH == 'true' }}
